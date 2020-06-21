@@ -196,7 +196,7 @@ public class Camera2APIMainActivity extends AppCompatActivity {
 
         }
     };
-    
+
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("CameraPreview");
         mBackgroundThread.start();
@@ -244,7 +244,7 @@ public class Camera2APIMainActivity extends AppCompatActivity {
         CameraManager cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
 
         try {
-            String cameraId = cameraManager.getCameraIdList()[0];
+            cameraId = cameraManager.getCameraIdList()[0];
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap streamConfigurationMap = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             previewSize = streamConfigurationMap.getOutputSizes(SurfaceTexture.class)[0];

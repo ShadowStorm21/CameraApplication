@@ -45,45 +45,52 @@ public class CameraAPIActivity extends AppCompatActivity implements TextureView.
 
     }
 
+    private void takePic() {
+
+        if(camera != null)
+        camera.takePicture(null,null,pictureCallback);
+    }
+
     private Camera.PictureCallback pictureCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
+
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(System.currentTimeMillis());
+            String fileName = "IMG_"+timestamp + "_";
+            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
             try {
-                String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(System.currentTimeMillis());
-                String fileName = "JPEG_"+timestamp +"_";
-                File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
                 File imageFile = File.createTempFile(fileName,".jpg",storageDir);
                 currentPath = imageFile.getAbsolutePath();
-                FileOutputStream fileOutputStream = new FileOutputStream(imageFile.getPath());
+                FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
                 fileOutputStream.write(data);
                 fileOutputStream.close();
-                Toast.makeText(CameraAPIActivity.this, "Picture Saved", Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(CameraAPIActivity.this, "Image saved in "+ currentPath, Toast.LENGTH_LONG).show();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     };
 
+
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
 
-        if(checkPermissions()) {
-            camera = Camera.open();
+            if(checkPermissions())
+            {
+                camera = Camera.open();
+                if(camera != null)
+                {
 
-            if (camera != null) {
-                try {
-                    camera.setPreviewTexture(surface);
-                    camera.startPreview();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    try {
+                        camera.setPreviewTexture(surface);
+                        camera.startPreview();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                 }
             }
-        }
-        else
-        {
-            requestPermissions();
-        }
+
     }
 
     @Override
@@ -97,6 +104,7 @@ public class CameraAPIActivity extends AppCompatActivity implements TextureView.
         {
             camera.stopPreview();
             camera.release();
+            camera = null;
             return true;
         }
         return false;
@@ -107,26 +115,22 @@ public class CameraAPIActivity extends AppCompatActivity implements TextureView.
 
     }
 
-    private void takePic()
+    private boolean checkPermissions()
     {
-        if(camera != null)
+        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
         {
-            camera.takePicture(null,null,pictureCallback);
-        }
-    }
-
-    private boolean checkPermissions() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             return true;
         }
-
-        return false;
+        else
+        {
+            return false;
+        }
     }
 
-    private void requestPermissions() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
+    private void requestPermissions()
+    {
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE},1000);
     }
 
     @Override
@@ -137,19 +141,16 @@ public class CameraAPIActivity extends AppCompatActivity implements TextureView.
         {
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
             {
-
-
-                takePic();
-                textureView.setSurfaceTextureListener(this);
-
                 camera = Camera.open();
-                try {
-                    camera.setPreviewTexture(textureView.getSurfaceTexture());
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if(camera != null)
+                {
+                    try {
+                        camera.setPreviewTexture(textureView.getSurfaceTexture());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    camera.startPreview();
                 }
-                camera.startPreview();
-
             }
             else
             {
@@ -157,7 +158,4 @@ public class CameraAPIActivity extends AppCompatActivity implements TextureView.
             }
         }
     }
-
-
-
 }

@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TabHost;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,58 +57,53 @@ public class MainActivity extends AppCompatActivity {
                 {
                     requestPermissions();
                 }
+
             }
         });
     }
 
 
+
     private boolean checkPermissions()
     {
-        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED )
         {
             return true;
         }
-
         return false;
     }
 
     private void requestPermissions()
     {
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.CAMERA,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE}, 1000);
     }
 
     private File createImageFile() throws IOException {
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHMMSS").format(System.currentTimeMillis());
-        String fileName = "JPEG_"+timestamp + "_";
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(System.currentTimeMillis());
+        String fileName = "IMG_"+timestamp+"_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(fileName,".jpg",storageDir);
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
+        File imageFile = File.createTempFile(fileName,".jpg",storageDir);
+        currentPhotoPath = imageFile.getAbsolutePath();
+        return imageFile;
     }
+
     private void getImage() throws IOException {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File photoFile = null;
+        File imageFile = null;
         Uri photoUri = null;
+
         if(intent.resolveActivity(getPackageManager()) != null)
         {
-            try {
-                photoFile = createImageFile();
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+            imageFile = createImageFile();
         }
-        if(photoFile != null)
+        if(imageFile != null)
         {
-            photoUri = FileProvider.getUriForFile(this,"com.example.cameraapplication.provider",photoFile);
+            photoUri = FileProvider.getUriForFile(this,"com.example.cameraapplication.provider",imageFile);
             intent.putExtra(MediaStore.EXTRA_OUTPUT,photoUri);
-            startActivityForResult(intent,1000);
+            startActivityForResult(intent,100);
         }
-
-
     }
 
     @Override
@@ -124,10 +120,10 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-            else
-            {
-                requestPermissions();
-            }
+        }
+        else
+        {
+            requestPermissions();
         }
     }
 
@@ -135,17 +131,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 1000)
+        if(requestCode == 100)
         {
             if(resultCode == Activity.RESULT_OK)
             {
-                try {
-                    imageView.setImageBitmap(BitmapFactory.decodeFile(currentPhotoPath));
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
+                imageView.setImageBitmap(BitmapFactory.decodeFile(currentPhotoPath));
+                Toast.makeText(this, "Image saved in "+currentPhotoPath, Toast.LENGTH_LONG).show();
             }
         }
     }
