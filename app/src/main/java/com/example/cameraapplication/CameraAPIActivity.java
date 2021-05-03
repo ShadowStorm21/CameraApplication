@@ -44,7 +44,7 @@ public class CameraAPIActivity extends AppCompatActivity implements TextureView.
         });
 
     }
-
+ //
     private void takePic() {
 
         if(camera != null)
